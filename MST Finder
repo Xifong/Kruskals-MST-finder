@@ -1,0 +1,87 @@
+
+def Find_MST(nodes, connections):
+  '''
+  Connections is a dictionary of connections and their
+  associated costs. Nodes is the number of nodes.
+  '''
+  print 'Network: ' + str(connections)
+  proto_nets = []
+  arcs = connections.copy()
+  used_arcs = []
+  left = nodes - 1
+
+  while left > 0:
+    print 'Connections to find: ' + str(left)
+    suggested = arcs.keys()[arcs.values().index(min(arcs.values()))]
+    print 'Considering: ' + str(suggested)
+    if does_create_loops(proto_nets, suggested):
+      print 'Deleting: ' + str(suggested)
+      del arcs[suggested]
+    else:
+      print 'Keeping: ' + str(suggested)
+      used_arcs.append(suggested)
+
+      linked = []
+      for nodes in suggested:
+        for proto_networks in proto_nets:
+          for pre_nodes in proto_networks:
+            if pre_nodes == nodes:
+              linked.append(proto_networks)
+              break
+
+      if len(linked) == 0:
+        print 'Creating new proto_network for: ' + str(suggested)
+        new = []
+        for each in suggested:
+          new.append(each)
+        proto_nets.append(new)
+        print 'Updated to: ' + str(proto_nets)
+
+      if len(linked) == 1:
+        print 'Adding: ' + str(suggested) + ' to: ' + str(linked[0])
+        for each in suggested:
+          proto_nets[proto_nets.index(linked[0])].append(each)
+        proto_nets[proto_nets.index(linked[0])] = dup_remove\
+        (proto_nets[proto_nets.index(linked[0])])
+        print 'Updated to: ' + str(proto_nets)
+
+      elif len(linked) == 2:
+        print 'Merging: ' + str(linked[0]) + ' and ' + str(linked[1])\
+        + ' for: ' + str(suggested)
+        new = []
+        for proto_networks in linked:
+          for pre_nodes in proto_networks:
+            new.append(pre_nodes)
+          del(proto_nets[proto_nets.index(proto_networks)])
+        new = dup_remove(new)
+        proto_nets.append(new)
+        print 'Updated to: ' + str(proto_nets)
+        del arcs[suggested]
+        left -= 1
+     
+  cost = 0
+  for arc in used_arcs:
+    cost += connections[str(arc)]
+
+  return 'Arcs in MST: ' + str(used_arcs) + ' Cost: ' + str(cost)
+
+
+def does_create_loops(proto_nets, suggested):
+  print 'Thus far: ' + str(proto_nets)
+  print 'Addition?: ' + str(suggested)
+  strikes = 0
+  for proto_networks in proto_nets:
+    for pre_nodes in proto_networks:
+      for nodes in suggested:
+        if nodes == pre_nodes:
+          strikes += 1
+    if strikes == 2:
+      print str(suggested) + ' creates a loop: ' + str(proto_nets)
+      return True
+  return False
+
+def dup_remove(thing):
+  thing = set(thing)
+  return list(thing)
+  
+  
